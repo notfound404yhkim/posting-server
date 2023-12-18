@@ -6,14 +6,46 @@ from mysql_connection import get_connection
 from mysql.connector import Error
 import boto3
 from datetime import datetime
-from resources.rekognition import ObjectDetectionResource
 
-class PostingResource(Resource):
+
+class PostingListResource(Resource):
+
+
+    def detect_labels(self, photo, bucket):
+
+        client = boto3.client('rekognition',
+                              'ap-northeast-2',
+                              aws_access_key_id=Config.AWS_ACCESS_KEY_ID,
+                              aws_secret_access_key=Config.AWS_SECRET_ACCESS_KEY)
+
+        response = client.detect_labels(Image={'S3Object':{'Bucket':bucket,'Name':photo}},
+        MaxLabels=5,
+        # Uncomment to use image properties and filtration settings
+        #Features=["GENERAL_LABELS", "IMAGE_PROPERTIES"],
+        #Settings={"GeneralLabels": {"LabelInclusionFilters":["Cat"]},
+        # "ImageProperties": {"MaxDominantColors":10}} 
+        )
+
+        print('Detected labels for ' + photo)
+        print()
+
+        label_list = [] 
+        for label in response['Labels']:
+            print("Label: " + label['Name']) 
+            print("Confidence: " + str(label['Confidence']))
+            if label['Confidence'] >= 90: #Confidence 가 90 이상인것만 출력하도록 .
+                label_list.append(label['Name'])
+            
+
+        return label_list
+
+
+
     @jwt_required()
     def post(self):
         
         # 1. 클라이언트로부터 데이터를 받아온다.
-        file = request.files.get('photo')
+        file = request.files.get('image')
         context = request.form.get('content')
         user_id = get_jwt_identity()
 
@@ -23,7 +55,7 @@ class PostingResource(Resource):
 
 
         current_time = datetime.now()
-        new_file_name = current_time.isoformat().replace(':','_') + '.jpg'
+        new_file_name = current_time.isoformat().replace(':','_') + str(user_id) + '.jpg'
     
         file.filename = new_file_name
 
@@ -43,9 +75,41 @@ class PostingResource(Resource):
             return{'error':str(e)}, 500
         
 
-        label_list = ObjectDetectionResource.detect_labels(self,new_file_name, Config.S3_BUCKET)
-        print(label_list)
-        label_list = ','.join(label_list)
+        # rekogintion 서비스를 이용하여
+        # object detection 하여, 태그 이름을 가져온다.
+        
+
+        tag_list = self.detect_labels(new_file_name, Config.S3_BUCKET)
+        print(tag_list)
+        
+        for i in tag_list:
+            try:
+                connection = get_connection()
+                query = ''' insert into tag_name
+                            (name)
+                            values
+                            (%s); '''
+
+                imgUrl = Config.S3_LOCATION + file.filename
+                record = ( i, )
+
+                cursor = connection.cursor()
+                cursor.execute(query,record)
+
+                connection.commit()
+
+                cursor.close()
+                connection.close()
+    
+            except Error as e:
+                print(e)
+                cursor.close()
+                connection.close()
+                return {'error' : str(e)},500
+            
+
+        # DB의 posting 테이블에 데이터를 넣어야함.
+        # tag_name 테이블 과 tag 테이블에도 데이터를 넣어줘야 한다 
 
 
         # 3. DB에 저장한다.
@@ -53,14 +117,14 @@ class PostingResource(Resource):
         try:
             connection = get_connection()
             query = ''' insert into posting
-                        (userId,imgUrl,content,tagging)
+                        (userId,imgUrl,content)
                         values
-                        (%s,%s, %s,%s); '''
+                        (%s,%s, %s); '''
 
 
             imgUrl = Config.S3_LOCATION + file.filename
     
-            record = ( user_id, imgUrl , context,label_list )
+            record = ( user_id, imgUrl , context )
 
             cursor = connection.cursor()
             cursor.execute(query,record)
@@ -83,6 +147,7 @@ class PostingResource(Resource):
     def get(self):
         
         user_id = get_jwt_identity()
+        print(1)
 
         # 쿼리 스트링 가져오기 (쿼리 파라미터)
         # get에서는 쿼리 파라미터를 이용해 데이터를 가져옴
@@ -135,7 +200,7 @@ class PostingResource(Resource):
             "count " : len(result_list)},200
     
 
-class PostingListResource(Resource):
+class PostingResource(Resource):
     @jwt_required()
     def delete(self,posting_id):
         user_id = get_jwt_identity()
@@ -171,10 +236,10 @@ class PostingListResource(Resource):
         try:
             connection = get_connection()
             query = ''' update posting
-                        set content = %s,tagging = %s
+                        set content = %s,
                         where id = %s and userId = %s;'''
             
-            record = (data['content'], data['tagging'],
+            record = (data['content'],
                       posting_id,user_id)
             
             cursor = connection.cursor()

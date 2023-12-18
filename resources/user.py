@@ -1,5 +1,3 @@
-
-import datetime
 from flask import request
 from flask_jwt_extended import create_access_token, get_jwt, get_jwt_identity, jwt_required
 from flask_restful import Resource
@@ -44,11 +42,10 @@ class UserRegisterResource(Resource):
         try:
             connection = get_connection()
             query = ''' insert into user
-                        (email,password,nickname,gender)
-                        values(%s,%s,%s,%s);'''
+                        (email,password)
+                        values(%s,%s);'''
             
-            record = (data['email'] ,password, 
-                      data['nickname'] , data['gender']) 
+            record = (data['email'] ,password) 
             
 
             cursor = connection.cursor()

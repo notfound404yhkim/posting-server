@@ -8,6 +8,7 @@ from resources.follow import FollowResource, FollowPostingResource
 from resources.like import likeResource
 from resources.posting import PostingListResource, PostingResource
 
+
 #  로그 아웃 관련된 임포트문. 
 from resources.user import UserLoginResource, UserLogoutResource, UserRegisterResource, jwt_blocklist
 
@@ -35,11 +36,11 @@ def check_if_token_is_revoked(jwt_header,jwt_payload):
 # 경로(path)와 리소스(API 코드) 를 연결한다. 
 
 api.add_resource( UserRegisterResource ,'/user/register')
-api.add_resource( UserLogoutResource ,'/user/logout')
 api.add_resource( UserLoginResource,'/user/login')
+api.add_resource( UserLogoutResource ,'/user/logout')
 
-api.add_resource( PostingResource,'/posting') #포스팅 작성 , 포스팅 조회 
-api.add_resource( PostingListResource ,'/posting/<int:posting_id>') # 포스팅 삭제 , 수정 
+api.add_resource( PostingListResource,'/posting') #포스팅 작성 , 포스팅 조회 
+api.add_resource( PostingResource ,'/posting/<int:posting_id>') # 포스팅 삭제 , 수정 
 
 api.add_resource( FollowResource , '/follow/<int:followee_id>') #친구 추가, 삭제 
 api.add_resource( FollowPostingResource , '/follow/posting') # 친구 포스팅 조회 
