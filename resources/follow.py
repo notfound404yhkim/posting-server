@@ -71,7 +71,7 @@ class FollowPostingResource(Resource):
         limit = request.args.get('limit')
         try:
             connection = get_connection()
-            query = '''select p.id as postingId,p.imgUrl, p.content ,p.userId,u.email, p.createdAt , count(l.id) as like_cnt
+            query = '''select p.id as postingId,p.imgUrl, p.content ,p.userId,u.email, p.createdAt , count(l.id) as like_cnt,if(l.userId = f.followerId,'1','0') as 'is_like'
                         from follow f 
                         join posting p
                         on f.followeeId = p.userId 
@@ -113,3 +113,10 @@ class FollowPostingResource(Resource):
         return {"result " : "success",
             "items" : result_list,
             "count " : len(result_list)},200
+    
+
+
+
+    
+
+

@@ -38,13 +38,12 @@ api.add_resource( UserRegisterResource ,'/user/register')
 api.add_resource( UserLogoutResource ,'/user/logout')
 api.add_resource( UserLoginResource,'/user/login')
 
-api.add_resource( PostingResource,'/posting')
-api.add_resource( PostingListResource ,'/posting/<int:posting_id>')
+api.add_resource( PostingResource,'/posting') #포스팅 작성 , 포스팅 조회 
+api.add_resource( PostingListResource ,'/posting/<int:posting_id>') # 포스팅 삭제 , 수정 
 
-api.add_resource( FollowResource , '/follow/<int:followee_id>')
-api.add_resource( FollowPostingResource , '/follow/posting')
-
-api.add_resource( likeResource , '/like/<int:like_id>')
+api.add_resource( FollowResource , '/follow/<int:followee_id>') #친구 추가, 삭제 
+api.add_resource( FollowPostingResource , '/follow/posting') # 친구 포스팅 조회 
+api.add_resource( likeResource , '/like/<int:like_id>') # 좋아요 ,좋아요 취소 
 
 if __name__ == '__main__':
     app.run()
