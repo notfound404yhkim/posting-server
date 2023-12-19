@@ -50,7 +50,7 @@ class UserRegisterResource(Resource):
 
             cursor = connection.cursor()
             cursor.execute(query, record)
-            connection.commit()
+            #connection.commit()
 
             ### 테이블에 방금 insert 한 데이터의 
             ##  아이디 값 가져오는 방법

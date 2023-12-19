@@ -6,12 +6,12 @@ from mysql.connector import Error
 
 
 # 좋아요, 관련 
-class likeResource(Resource):
+class LikeResource(Resource):
     # 추가 
     @jwt_required()
-    def post(self,like_id):
+    def post(self,posting_id):
         user_id = get_jwt_identity()
-        print(like_id)
+        print(posting_id)
 
         try:
             connection = get_connection()
@@ -20,7 +20,7 @@ class likeResource(Resource):
                         values
                         (%s,%s);'''
             
-            record = (user_id,like_id)
+            record = (user_id,posting_id)
             cursor = connection.cursor()
             cursor.execute(query,record)
             connection.commit()
@@ -29,7 +29,7 @@ class likeResource(Resource):
             connection.close()
 
         except Error as e:
-            print(Error)
+            print(e)
             cursor.close()
             connection.close()
             return{"ERROR" : str(e)},500
@@ -37,16 +37,16 @@ class likeResource(Resource):
         return{"Result " : "Success" },200
         
     @jwt_required()
-    def delete(self,like_id):
+    def delete(self,posting_id):
         user_id = get_jwt_identity()
-        print(like_id)
+    
 
         try:
             connection = get_connection()
             query = '''delete from likes
                        where userId = %s and postingId = %s;'''
             
-            record = (user_id,like_id)
+            record = (user_id,posting_id)
             cursor = connection.cursor()
             cursor.execute(query,record)
             connection.commit()
@@ -55,7 +55,7 @@ class likeResource(Resource):
             connection.close()
 
         except Error as e:
-            print(Error)
+            print(e)
             cursor.close()
             connection.close()
             return{"ERROR" : str(e)},500

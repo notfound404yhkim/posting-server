@@ -4,8 +4,8 @@ from flask import Flask
 from flask_jwt_extended import JWTManager
 from flask_restful import Api
 from config import Config
-from resources.follow import FollowResource, FollowPostingResource
-from resources.like import likeResource
+from resources.follow import FollowResource
+from resources.like import LikeResource
 from resources.posting import PostingListResource, PostingResource
 
 
@@ -39,12 +39,11 @@ api.add_resource( UserRegisterResource ,'/user/register')
 api.add_resource( UserLoginResource,'/user/login')
 api.add_resource( UserLogoutResource ,'/user/logout')
 
-api.add_resource( PostingListResource,'/posting') #포스팅 작성 , 포스팅 조회 
-api.add_resource( PostingResource ,'/posting/<int:posting_id>') # 포스팅 삭제 , 수정 
+api.add_resource( PostingListResource,'/posting') #포스팅 작성 , 팔로워한 포스팅 보기 
+api.add_resource( PostingResource ,'/posting/<int:posting_id>') # 포스팅 삭제 , 수정 ,상세보기
 
 api.add_resource( FollowResource , '/follow/<int:followee_id>') #친구 추가, 삭제 
-api.add_resource( FollowPostingResource , '/follow/posting') # 친구 포스팅 조회 
-api.add_resource( likeResource , '/like/<int:like_id>') # 좋아요 ,좋아요 취소 
+api.add_resource( LikeResource , '/like/<int:posting_id>') # 좋아요 ,좋아요 취소 
 
 if __name__ == '__main__':
     app.run()
